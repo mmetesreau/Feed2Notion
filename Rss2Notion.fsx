@@ -16,25 +16,26 @@ let getWeeklyFeedItems (now: DateTime) (url: string) =
         |> Seq.map (fun x -> x.Title.Text, string (x.Links |> Seq.head).Uri)
 
 let createPageIfNotExists (client: NotionClient) (databaseId: string) ((title, link): (string * string)) =
-    async {
-        let page = PagesCreateParametersBuilder.Create(DatabaseParentInput(DatabaseId = databaseId))
-                        .AddProperty("Title", TitlePropertyValue(Title=List<RichTextBase>([ RichTextText(Text=new Text(Content=title)) :> RichTextBase ] |> Seq.ofList)))
-                        .AddProperty("Link", UrlPropertyValue(Url= link))
-                        .Build()
+    let page = PagesCreateParametersBuilder.Create(DatabaseParentInput(DatabaseId = databaseId))
+                    .AddProperty("Title", TitlePropertyValue(Title=List<RichTextBase>([ RichTextText(Text=new Text(Content=title)) :> RichTextBase ] |> Seq.ofList)))
+                    .AddProperty("Link", UrlPropertyValue(Url= link))
+                    .Build()
 
-        try
-            let queryParameters = DatabasesQueryParameters(Filter = TextFilter("Link", equal=link))
-            let! searchPageResult = client.Databases.QueryAsync(databaseId, queryParameters) |> Async.AwaitTask
+    try
+        let searchPageResult = client.Databases.QueryAsync(databaseId, DatabasesQueryParameters(Filter = TextFilter("Link", equal=link))) 
+                                    |> Async.AwaitTask
+                                    |> Async.RunSynchronously
 
-            match searchPageResult.Results.Count = 0 with
-            | true -> 
-                let! _ = client.Pages.CreateAsync(page) |> Async.AwaitTask
-                printfn $"[CREATED] - {title} ({link})"
-            | false -> 
-                printfn $"[EXISTS]  - {title} ({link})"
-        with
-        | _ -> printfn $"[ERROR]   - {title} ({link})"
-    }
+        if searchPageResult.Results.Count = 0 then
+            client.Pages.CreateAsync(page) 
+                |> Async.AwaitTask
+                |> Async.RunSynchronously
+                |> ignore
+            $"[CREATED] - {title} ({link})"
+        else 
+            $"[EXISTS] - {title} ({link})"
+    with
+    | _ -> $"[ERROR] - {title} ({link})"
 
 let authToken = Environment.GetEnvironmentVariable("NOTION_API_TOKEN")
 let databaseId = Environment.GetEnvironmentVariable("NOTION_FEEDITEMS_DATABASE_ID")
@@ -48,6 +49,4 @@ let client = NotionClient(ClientOptions(AuthToken = authToken))
 ]
     |> Seq.collect (getWeeklyFeedItems DateTime.Now)
     |> Seq.map (createPageIfNotExists client databaseId)
-    |> Async.Parallel
-    |> Async.Ignore
-    |> Async.RunSynchronously
+    |> Seq.iter (fun x -> printfn $"{x}")
