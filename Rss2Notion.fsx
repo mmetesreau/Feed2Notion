@@ -37,7 +37,7 @@ let createPageIfNotExists (client: NotionClient) (databaseId: string) ((title, l
 let authToken = Environment.GetEnvironmentVariable("NOTION_API_TOKEN")
 let databaseId = Environment.GetEnvironmentVariable("NOTION_FEEDITEMS_DATABASE_ID")
 
-let client = NotionClient(ClientOptions(AuthToken = authToken))
+let client = NotionClientFactory.Create(ClientOptions(AuthToken = authToken))
 
 [
     "https://brandewinder.com/atom.xml"
