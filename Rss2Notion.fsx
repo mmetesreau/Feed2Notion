@@ -43,6 +43,8 @@ let client = NotionClientFactory.Create(ClientOptions(AuthToken = authToken))
     "https://brandewinder.com/atom.xml"
     "https://sergeytihon.com/feed/atom/"
     "https://codeopinion.com/feed/atom/"
+    "https://blog.tunaxor.me/feed.atom"
+    "https://thinkbeforecoding.com/feed/atom"
     "https://blog.ploeh.dk/atom"
 ]
     |> Seq.collect (getWeeklyFeedItems DateTime.Now)
