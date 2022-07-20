@@ -1,8 +1,8 @@
-name: Get Feed
+name: Feed2Notion
 
 on:
   schedule:
-    - cron: "0 */3 * * *" 
+    - cron: "0 */5 * * *" 
   workflow_dispatch:
 
 jobs:
@@ -17,5 +17,5 @@ jobs:
         uses: actions/setup-dotnet@v1
         with:
           dotnet-version: '6.0.x'
-      - name: Update Notion Feed
-        run: dotnet fsi Rss2Notion.fsx
+      - name: Feed2Notion
+        run: dotnet fsi Feed2Notion.fsx

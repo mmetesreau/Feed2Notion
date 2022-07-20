@@ -1,1 +1,1 @@
-# Rss2Notion
+# Feed2Notion
